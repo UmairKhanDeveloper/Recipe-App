@@ -17,7 +17,7 @@ Let's chat about potential projects, job opportunities, or any other collaborati
 
 ## Screen Shots
 
-| ![Screenshot 1](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/1.png) | ![Screenshot 2](]([https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/2.png)](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/2.png)) | ![Screenshot 3](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/3.png) |
+| ![Screenshot 1](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/1.png) | ![Screenshot 2](]([https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/2.png) | ![Screenshot 3](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/3.png) |
 | --- | --- | --- |
 | ![Screenshot 4](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/4.png) | ![Screenshot 5](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/5.png) | ![Screenshot 6](https://github.com/UmairKhanDeveloper/Recipe-App/blob/main/ScreenShot/6.png) 
 
