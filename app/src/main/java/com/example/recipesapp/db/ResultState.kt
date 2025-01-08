@@ -1,4 +1,4 @@
-package com.example.recipesapp.api.MostPopular
+package com.example.recipesapp.db
 
 sealed class ResultState<out T> {
     object Loading : ResultState<Nothing>()

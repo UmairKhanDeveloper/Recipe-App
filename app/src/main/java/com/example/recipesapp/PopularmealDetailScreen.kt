@@ -3,7 +3,6 @@ package com.example.recipesapp
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
-import android.provider.Telephony.Mms.Intents
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,10 +26,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.AddComment
-import androidx.compose.material.icons.outlined.Addchart
 import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Print
@@ -38,7 +35,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +42,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,8 +62,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.room.Room
 import coil.compose.AsyncImage
-import com.example.recipesapp.api.MostPopular.Meal
+import com.example.recipesapp.db.Favorite
+import com.example.recipesapp.db.FavoriteDataBase
+import com.example.recipesapp.db.MainViewModel
+import com.example.recipesapp.db.Repository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -76,9 +75,13 @@ import com.example.recipesapp.api.MostPopular.Meal
 fun PopularmealdetailScreen(
     navController: NavController,
     meal: Detail,
-) {
 
+    ) {
     val context = LocalContext.current
+    val favoriteDataBase =
+        remember { Room.databaseBuilder(context, FavoriteDataBase::class.java, "demo.db").fallbackToDestructiveMigration().build() }
+    val repository = remember { Repository(favoriteDataBase) }
+    val viewModel = remember { MainViewModel(repository) }
     var boolean by remember { mutableStateOf(true) }
     var boolean1 by remember { mutableStateOf(false) }
     var boolean2 by remember { mutableStateOf(false) }
@@ -89,186 +92,196 @@ fun PopularmealdetailScreen(
 
     var bottomsheet by remember { mutableStateOf(false) }
 
-    if (bottomsheet)
-        ModalBottomSheet(onDismissRequest = { bottomsheet = false }) {
-            Icon(
-                imageVector = Icons.Default.Clear,
-                contentDescription = "",
+    if (bottomsheet) ModalBottomSheet(onDismissRequest = { bottomsheet = false }) {
+        Icon(imageVector = Icons.Default.Clear,
+            contentDescription = "",
+            modifier = Modifier
+                .clickable { bottomsheet = false }
+                .align(Alignment.End)
+                .padding(end = 10.dp))
+        Column(
+            modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+        ) {
+            Row(
                 modifier = Modifier
-                    .clickable { bottomsheet = false }
-                    .align(Alignment.End)
-                    .padding(end = 10.dp)
-            )
-            Column(
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate(
+                            Screens.NutaritionsFactsScreen.route + "/${
+                                Uri.encode(
+                                    meal.meals.strInstructions
+                                )
+                            }"
+                        )
+                        bottomsheet = false
+                    },
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            navController.navigate(
-                                Screens.NutaritionsFactsScreen.route + "/${
-                                    Uri.encode(
-                                        meal.meals.strInstructions
-                                    )
-                                }"
-                            )
-                            bottomsheet = false
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Nutrition Facts",
-                        modifier = Modifier,
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Timer,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Open Cooking Mode",
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            navController.navigate(Screens.AddNotesScreen.route)
-                            bottomsheet = false
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.StickyNote2,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Add Notes",
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Share,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Share",
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Print,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Print",
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            navController.navigate(Screens.FeecbackScreen.route)
-                            bottomsheet = false
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Feedback,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Feedback For The Chef",
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AddComment,
-                        contentDescription = "",
-                        tint = Color(0XFF999999)
-                    )
-                    Text(
-                        text = "Add To Collections",
-                        style = TextStyle(fontSize = 16.sp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
-
-
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Nutrition Facts",
+                    modifier = Modifier,
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Timer,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Open Cooking Mode",
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate(Screens.AddNotesScreen.route)
+                        bottomsheet = false
+                    },
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.StickyNote2,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Add Notes",
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(modifier = Modifier
+                .clickable {
+                    val shareIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(
+                            Intent.EXTRA_TEXT, """
+            Check out this meal:
+            Name: ${meal.meals.strMeal}
+            Instructions: ${meal.meals.strInstructions}
+            Image: ${meal.meals.strMealThumb}
+            """.trimIndent()
+                        )
+                        type = "text/plain"
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+                }
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Share",
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Print,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Print",
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate(Screens.FeecbackScreen.route)
+                        bottomsheet = false
+                    },
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Feedback,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Feedback For The Chef",
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AddComment,
+                    contentDescription = "",
+                    tint = Color(0XFF999999)
+                )
+                Text(
+                    text = "Add To Collections",
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = Color(0XFFCCCCCC))
+
+
         }
+
+    }
 
     Scaffold(bottomBar = {
         BottomAppBar(containerColor = Color(0XFFFFFFFF)) {
@@ -304,7 +317,8 @@ fun PopularmealdetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircleOutline,
-                            contentDescription = "", tint = Color(0XFF999999)
+                            contentDescription = "",
+                            tint = Color(0XFF999999)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
 
@@ -374,14 +388,12 @@ fun PopularmealdetailScreen(
                         .align(Alignment.TopCenter),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .size(40.dp)
-                            .background(color = Color.White)
-                            .clickable { navController.popBackStack() }
-                    ) {
+                    Box(modifier = Modifier
+                        .padding(start = 10.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .size(40.dp)
+                        .background(color = Color.White)
+                        .clickable { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
@@ -390,14 +402,12 @@ fun PopularmealdetailScreen(
                                 .align(Alignment.Center)
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 10.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .size(40.dp)
-                            .background(color = Color.White)
-                            .clickable { }
-                    ) {
+                    Box(modifier = Modifier
+                        .padding(end = 10.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .size(40.dp)
+                        .background(color = Color.White)
+                        .clickable { }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "Menu",
@@ -425,14 +435,26 @@ fun PopularmealdetailScreen(
                 Icon(
                     imageVector = Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            viewModel.Insert(
+                                Favorite(
+                                    id = null,
+                                    title = meal.meals.strMealThumb,
+                                    des = meal.meals.strMeal,
+                                   favid = meal.meals.idMeal
+                                )
+                            )
+                        }
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Row() {
                     Text(
-                        text = "Category:", color = Color(0XFF666666),
+                        text = "Category:",
+                        color = Color(0XFF666666),
                         style = TextStyle(fontSize = 14.sp),
                         fontWeight = FontWeight.Normal
                     )
@@ -446,7 +468,8 @@ fun PopularmealdetailScreen(
                 }
                 Row() {
                     Text(
-                        text = "Area:", color = Color(0XFF666666),
+                        text = "Area:",
+                        color = Color(0XFF666666),
                         style = TextStyle(fontSize = 14.sp),
                         fontWeight = FontWeight.Normal
                     )
@@ -462,8 +485,7 @@ fun PopularmealdetailScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround
             ) {
                 Box(
                     modifier = Modifier
@@ -728,7 +750,8 @@ fun Instructions(meal: Detail) {
         Text(
             text = meal.meals.strInstructions,
             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-            color = MaterialTheme.colorScheme.onBackground, fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontStyle = FontStyle.Italic,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
     }

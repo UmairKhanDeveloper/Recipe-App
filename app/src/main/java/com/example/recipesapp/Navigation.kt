@@ -34,6 +34,8 @@ import androidx.navigation.navArgument
 import com.example.recipesapp.api.MostPopular.Meal
 import com.example.recipesapp.api.RecentlyCreated.RecentlyMeal
 import com.example.recipesapp.api.RecommendedPlan.RecommendedPlanMeal
+import com.example.recipesapp.mealDetailsId.FavoriteMeal
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -48,6 +50,17 @@ fun Navigation(navController: NavHostController) {
         }
         composable(Screens.FavoritesScreen.route) {
             FavoritesScreen(navController)
+        }
+        composable(
+            route = Screens.MealDetailsScreen.route + "/{favid}",
+            arguments = listOf(
+                navArgument("favid") {
+                    type = NavType.IntType
+                }
+            )
+        ) {
+            val favid=it.arguments?.getInt("favid")
+            MealDetailsScreen(navController, favid)
         }
         composable(Screens.NutaritionsFactsScreen.route + "/{strInstructions}", arguments = listOf(
             navArgument("strInstructions") {
@@ -109,6 +122,7 @@ fun Navigation(navController: NavHostController) {
 data class Detail(
     val meals: Meal
 )
+
 
 @Serializable
 data class RecentlyDetail(
@@ -197,6 +211,13 @@ sealed class Screens(
         unselectedIcon = Icons.Outlined.Settings
     )
 
+    object MealDetailsScreen : Screens(
+        "  MealDetailsScreen",
+        "MealDetailsScreen",
+        selectedIcon = Icons.Filled.Settings,
+        unselectedIcon = Icons.Outlined.Settings
+    )
+
 
 }
 
@@ -204,7 +225,6 @@ sealed class Screens(
 fun BottomNavigation(navController: NavController) {
     val items = listOf(
         Screens.MealPlanScreen,
-        Screens.GroceriesScreen,
         Screens.FavoritesScreen,
         Screens.SettingScreen,
     )

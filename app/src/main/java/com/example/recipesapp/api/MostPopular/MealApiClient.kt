@@ -4,6 +4,7 @@ import com.example.recipesapp.api.MostPopular.Constant.BASE_URL
 import com.example.recipesapp.api.MostPopular.Constant.TIMEOUT
 import com.example.recipesapp.api.RecentlyCreated.RecentlyCreated
 import com.example.recipesapp.api.RecommendedPlan.RecommendedPlan
+import com.example.recipesapp.mealDetailsId.RecipeDetailsId
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
@@ -57,5 +58,8 @@ object MealApiClient {
     }
     suspend fun RecommendedPlanMeal(): RecommendedPlan {
         return client.get("https://www.themealdb.com/api/json/v1/1/search.php?f=b").body()
+    }
+    suspend fun RecipeDetailsId(id: String): RecipeDetailsId {
+        return client.get("https://www.themealdb.com/api/json/v1/1/lookup.php?i=$id").body()
     }
 }

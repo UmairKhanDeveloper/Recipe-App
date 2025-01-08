@@ -3,6 +3,11 @@ package com.example.recipesapp
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +53,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -60,16 +67,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.room.Room
 import coil.compose.AsyncImage
-import com.example.recipesapp.api.MostPopular.MainViewModel
 import com.example.recipesapp.api.MostPopular.Meal
 import com.example.recipesapp.api.MostPopular.MostPopular
-import com.example.recipesapp.api.MostPopular.Repository
-import com.example.recipesapp.api.MostPopular.ResultState
 import com.example.recipesapp.api.RecentlyCreated.RecentlyCreated
 import com.example.recipesapp.api.RecentlyCreated.RecentlyMeal
 import com.example.recipesapp.api.RecommendedPlan.RecommendedPlan
 import com.example.recipesapp.api.RecommendedPlan.RecommendedPlanMeal
+import com.example.recipesapp.db.FavoriteDataBase
+import com.example.recipesapp.db.MainViewModel
+import com.example.recipesapp.db.Repository
+import com.example.recipesapp.db.ResultState
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -77,8 +86,10 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealPlanScreen(navController: NavHostController) {
-
-    val repository = remember { Repository() }
+    val context = LocalContext.current
+    val favoriteDataBase =
+        remember { Room.databaseBuilder(context, FavoriteDataBase::class.java, "demo.db").build() }
+    val repository = remember { Repository(favoriteDataBase) }
     val viewModel = remember { MainViewModel(repository) }
     var mostpopularmeal by remember { mutableStateOf<MostPopular?>(null) }
     var isloading by remember { mutableStateOf(false) }
@@ -86,7 +97,6 @@ fun MealPlanScreen(navController: NavHostController) {
     var isloadingrecommended by remember { mutableStateOf(false) }
     var BottomSheet by remember { mutableStateOf(false) }
     var boolean = remember { mutableStateOf(false) }
-    val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("SignUp", Context.MODE_PRIVATE)
     sharedPreferences.edit().putBoolean("userId", true).apply()
     var RecentlyCreatedmeal by remember { mutableStateOf<RecentlyCreated?>(null) }
@@ -232,14 +242,26 @@ fun MealPlanScreen(navController: NavHostController) {
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                        ) {
-                            mostpopularmeal?.meals?.let { meals ->
-                                items(meals) { meal ->
-                                    RecipeList(meal = meal, navController)
+                        if (isloading) {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                            ) {
+                                items(5) {
+                                    shimirEffect()
+                                }
+                            }
+                        } else {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                            ) {
+                                mostpopularmeal?.meals?.let { meals ->
+                                    items(meals) { meal ->
+                                        RecipeList(meal = meal, navController)
+                                    }
                                 }
                             }
                         }
@@ -263,14 +285,19 @@ fun MealPlanScreen(navController: NavHostController) {
                             .fillMaxWidth()
                             .height(200.dp),
                     ) {
-                        RecentlyCreatedmeal?.meals?.let {
-
-                            items(it) {
-                                RecentlyCreatedRecipeList(recentlyMeal = it, navController)
+                        if (isloading) {
+                            items(5) {
+                                shimirEffect()
+                            }
+                        } else {
+                            RecentlyCreatedmeal?.meals?.let { meals ->
+                                items(meals) { meal ->
+                                    RecentlyCreatedRecipeList(recentlyMeal = meal, navController)
+                                }
                             }
                         }
-
                     }
+
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
@@ -285,17 +312,32 @@ fun MealPlanScreen(navController: NavHostController) {
                         )
                         Text(text = "See All", color = Color(0XFFF58700))
                     }
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        RecommendedPlanmeal?.meals?.let {
-                            items(it) {
-                                RecommendedPlanRecipeList(recommendedPlan = it, navController)
+                        if (isloading) {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                            ) {
+                                items(5) { // Show 5 shimmer placeholders
+                                    shimirEffect()
+                                }
+                            }
+                        } else {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                            ) {
+                                RecommendedPlanmeal?.meals?.let { meals ->
+                                    items(meals) { meal ->
+                                        RecommendedPlanRecipeList(recommendedPlan = meal, navController = navController)
+                                    }
+                                }
                             }
                         }
-
                     }
                 }
 
@@ -397,6 +439,51 @@ fun MealPlanScreen(navController: NavHostController) {
         }
     }
 }
+
+@Composable
+fun shimirEffect() {
+    val shimirColors = listOf(
+        Color.LightGray,
+        Color.White,
+        Color.LightGray
+    )
+
+
+    val transition = rememberInfiniteTransition()
+    val translateAnimation = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 300f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1000,
+            )
+        ),
+        label = ""
+    )
+
+    val brush = Brush.linearGradient(
+        colors = shimirColors,
+        start = Offset.Zero,
+        end = Offset(x = translateAnimation.value, y = 0f)
+    )
+
+    shimirItem(brush = brush)
+}
+
+
+@Composable
+fun shimirItem(brush: Brush) {
+    Spacer(
+        modifier = Modifier
+            .height(200.dp)
+            .width(150.dp)
+            .padding(8.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(brush)
+    )
+}
+
+
 
 @Composable
 fun RecipeList(meal: Meal, navController: NavController) {

@@ -1,10 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.serialization)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-
+    alias(libs.plugins.kotlinxSerialization)
+    id("kotlin-kapt")
 }
 
 android {
@@ -63,7 +62,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,16 +69,26 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.serialization.kotlinx.json)
     implementation(libs.ktor.client.android)
-    implementation(libs.ktor.client.okhttp)
-    implementation(libs.ktor.client.content.negociation)
-    implementation(libs.ktor.client.serialization.json)
-    implementation(libs.ktor.client.loging)
-    val nav_version = "2.8.5"
-
+    val nav_version = "2.7.7"
     implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.compose.material:material-icons-extended:1.6.3")
+    val room_version = "2.6.1"
 
-    implementation("androidx.compose.material:material-icons-extended:1.7.6")
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt ("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+    implementation("media.kamel:kamel-image:0.9.4")
+    implementation(project.dependencies.platform("io.insert-koin:koin-bom:3.5.4"))
+    implementation("io.insert-koin:koin-core")
+    implementation("io.insert-koin:koin-android")
+    implementation("io.insert-koin:koin-compose")
+    implementation("io.insert-koin:koin-annotations:1.3.1")
     implementation ("androidx.compose.runtime:runtime-livedata")
     implementation("io.sanghun:compose-video:1.2.0")
     implementation("androidx.media3:media3-exoplayer:1.1.0")
@@ -89,7 +97,5 @@ dependencies {
 
     implementation("androidx.media3:media3-exoplayer-dash:1.1.0")
     implementation("androidx.media3:media3-exoplayer-hls:1.1.0")
-    implementation("io.coil-kt:coil-compose:2.4.0")
-
 
 }
